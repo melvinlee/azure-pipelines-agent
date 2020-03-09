@@ -9,6 +9,54 @@ pr:
 jobs:
 
 ################################################################################
+- job: default
+################################################################################
+  displayName: Local run
+  pool: default
+  steps:
+
+  # Steps template for windows platform
+  - template: .vsts.template.windows.yml
+    parameters:
+      componentDetection: 'true'
+      testLogTitle: 'Windows-x64'
+
+  - script: dotnet tool install --global dotnet-reportgenerator-globaltool
+    displayName: Install Report Generator
+
+  - script: dev.cmd report
+    displayName: Generate Code Coverage report
+    workingDirectory: src
+
+  - task: PublishCodeCoverageResults@1
+    inputs:
+      codeCoverageTool: 'cobertura'
+      summaryFileLocation: _reports/**/Cobertura.xml
+      pathToSources: src
+
+  # Package .NET Core Windows dependency (VC++ Redistributable)
+  - template: .azure-pipelines/package-vcredist.yml
+    parameters:
+      layoutRoot: '_layout/win-x64'
+      flavor: 'x64'
+      condition: and(succeeded(), ne(variables['build.reason'], 'PullRequest'))
+
+  # Create agent package zip
+  - script: dev.cmd package Release
+    workingDirectory: src
+    displayName: Package Release
+    condition: and(succeeded(), ne(variables['build.reason'], 'PullRequest'))
+
+  # Upload agent package zip as build artifact
+  - task: PublishBuildArtifacts@1
+    displayName: Publish Artifact (Windows x64)
+    condition: and(succeeded(), ne(variables['build.reason'], 'PullRequest'))
+    inputs:
+      pathToPublish: _package
+      artifactName: agent
+      artifactType: container
+
+################################################################################
 - job: build_windows_x64_agent
 ################################################################################
   displayName: Windows Agent (x64)
