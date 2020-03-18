@@ -6,7 +6,7 @@ resources:
   - container: dotnetcore_centos6
     image: huangtingluo/azure-pipelines-agent-eng:centos6
 
-# stages:
+stages:
 # - stage: Create_Release_Branch
 #   displayName: Create Release Branch
 #   jobs:
