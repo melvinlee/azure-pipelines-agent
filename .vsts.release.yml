@@ -144,7 +144,7 @@ stages:
     # Signing steps
     - template: .azure-pipelines/signing.yml
       parameters:
-        layoutRoot: '_layout/linux-x86'
+        layoutRoot: '_layout/linux-x64'
         isWindows: false
 
     # # Create agent package zip
